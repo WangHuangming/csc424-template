@@ -3,14 +3,19 @@ package assignment2
 import scala.io.StdIn.readLine
 import scala.annotation.tailrec
 
+
 /**
   * This is a very simple REPL (read-eval-print loop) for MicroTalk.
   */
 @main def microTalk() = {
+  import scala.math.Pi
+  
   val predef = Map(
     "true" -> TrueValue,
     "false" -> FalseValue,
-    "nil" -> NullValue
+    "nil" -> NullValue,
+    "pi" -> RealValue(Pi),
+    "student" -> StrValue("Huangming Wang")
   )
 
   /**

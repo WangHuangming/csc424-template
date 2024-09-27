@@ -28,7 +28,7 @@ trait Value:
 
 case object NullValue extends Value:
   override def toString: String = "nil"
-
+ 
 case class IntValue(number: Int) extends Value:
   override def toString: String = number.toString
 
@@ -262,7 +262,38 @@ case object FalseValue extends BoolValue:
 
   override def receive(msg: Message): Value = {
     msg match
-      // TODO fill this in following the model of TrueValue
+      // "and": false & x is false, for any x (not just booleans)
+      case Message("&", Seq(that)) =>
+        TrueValue
+      // "or": false | x is x, for any x
+      case Message("|", Seq(that)) =>
+        that
+      case Message("not", Nil) =>
+        TrueValue
+
+      case Message("asInteger", Nil) =>
+        IntValue(0)
+      case Message("asString", Nil) =>
+        StrValue("false")
+
+      case Message("=", Seq(TrueValue)) =>
+        FalseValue
+      case Message("=", Seq(FalseValue)) =>
+        TrueValue
+      // Note that we consider "false" to be less than "true"
+      case Message("<", Seq(TrueValue)) =>
+        TrueValue
+      case Message("<", Seq(FalseValue)) =>
+        FalseValue
+
+      case Message("ifTrue:", Seq(trueBlock)) =>
+        NullValue
+      case Message("ifTrue:ifFalse:", Seq(trueBlock, falseBlock)) =>
+        falseBlock.receive(Message("value", Nil))
+      case Message("ifFalse:", Seq(falseBlock)) =>
+        falseBlock.receive(Message("value", Nil))
+      case Message("ifFalse:ifTrue:", Seq(falseBlock, trueBlock)) =>
+        falseBlock.receive(Message("value", Nil))
 
       case _ =>
         super.receive(msg)
