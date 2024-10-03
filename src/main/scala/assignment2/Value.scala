@@ -264,7 +264,7 @@ case object FalseValue extends BoolValue:
     msg match
       // "and": false & x is false, for any x (not just booleans)
       case Message("&", Seq(that)) =>
-        TrueValue
+        FalseValue
       // "or": false | x is x, for any x
       case Message("|", Seq(that)) =>
         that
