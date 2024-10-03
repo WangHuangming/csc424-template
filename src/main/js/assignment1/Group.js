@@ -6,23 +6,31 @@ class Group {
     }
 
     has(x) {
-        return undefined;
+        return this.#contents.includes(x);
     }
 
     add(x) {
         if (!this.has(x)) {
-            undefined;
+            this.#contents.push(x);
         }
     }
 
     delete(x) {
-        this.#contents = undefined;
+        try{
+            if (this.has(x)){
+                this.#contents = this.#contents.filter(element => element !== x);
+            }else{
+                throw new Error('There is no such an element')
+            }
+        }catch{
+            ;
+        }
     }
 
     static from(it) {
         let result = new Group();
         for (let x of it) {
-            undefined;
+            result.add(x);
         }
         return result;
     }
