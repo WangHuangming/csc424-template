@@ -159,6 +159,45 @@ object DOMtoHTML:
     attributes.find(_.name == name).map(_.value)
   }
 
+  def conversion(html: HTML): Seq[String] = {
+    val result = Seq(
+      "---",
+      s"title: ${html.head.title.title}",
+      "---",
+      ""
+    )
+    result ++ convertBody(html.body)
+  }
+
+  private def convertBody(body: Body): Seq[String] = {
+    body.content.flatMap {
+      case GroupingContent.H1(children) => Seq("# " + convertInlineElements(children), "")
+      case GroupingContent.H2(children) => Seq("## " + convertInlineElements(children), "")
+      case GroupingContent.H3(children) => Seq("### " + convertInlineElements(children), "")
+      case GroupingContent.P(children) => Seq(convertInlineElements(children), "")
+      case GroupingContent.OL(items) => convertList(items, ordered = true)
+      case GroupingContent.UL(items) => convertList(items, ordered = false)
+      case GroupingContent.HR => Seq("---", "")
+    }
+  }
+
+  private def convertList(items: Seq[Item], ordered: Boolean): Seq[String] = {
+    items.zipWithIndex.map { case (item, idx) =>
+      val prefix = if (ordered) s"${idx + 1}. " else "- "
+      prefix + convertInlineElements(item.children)
+    } :+ ""
+  }
+
+  private def convertInlineElements(elements: Seq[PhrasingContent]): String = {
+    elements.map {
+      case PhrasingContent.Em(children) => s"*${convertInlineElements(children)}*"
+      case PhrasingContent.Strong(children) => s"**${convertInlineElements(children)}**"
+      case PhrasingContent.A(href, children) => s"[${convertInlineElements(children)}](${href})"
+      case PhrasingContent.Txt(text) => text
+    }.mkString("")
+  }
+
+
 @main def replHTMLTest(): Unit = {
   import scala.io.StdIn.readLine
   import scala.annotation.tailrec
@@ -175,7 +214,8 @@ object DOMtoHTML:
     else
       DOMtoHTML(input) match
         case Right(html) =>
-          println(html)
+          val markdown=DOMtoHTML.conversion(html);
+          println(markdown.mkString("\n"))
         case Left(message) =>
           println("ErrOr: " + message)
       loop
@@ -189,7 +229,8 @@ object DOMtoHTML:
   
   DOMtoHTML(inFile) match
         case Right(html) =>
-          println(html)
+          val markdown=DOMtoHTML.conversion(html);
+          println(markdown.mkString("\n"))
         case Left(message) =>
           println("ErrOr: " + message)
 }
